@@ -3,7 +3,7 @@ from sys import exit
 from random import randint
 
 os.system('clear')
-os.chdir('/Users/jaliljusay/Documents/Python_Files/Python Lessons and notes/Pygame Tutorial/Flappy Bird')
+os.chdir('/Users/username/Documents/Python_Files/Python Lessons and notes/Pygame Tutorial/Flappy Bird')
 
 
 '''
