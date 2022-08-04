@@ -3,15 +3,7 @@ from sys import exit
 from random import randint
 
 os.system('clear')
-os.chdir('/Users/username/Documents/Python_Files/Python Lessons and notes/Pygame Tutorial/Flappy Bird')
-
-
-'''
-Changed the selves in the Bird Class; 
-that was the reason why it was using too much memory.
-Too many selves
-Aug 2
-'''
+os.chdir('/Users/jaliljusay/Documents/Python_Files/Python Lessons and notes/Pygame Tutorial/Flappy Bird')
 
 class Bird(pygame.sprite.Sprite):
     def __init__(self):
@@ -20,6 +12,7 @@ class Bird(pygame.sprite.Sprite):
         self.frames = [bird1, bird2, bird3]
         self.frames_index = 0
         self.image = self.frames[self.frames_index]
+        # self.image = pygame.transform.scale2x(self.image)
         self.rect = self.image.get_rect(center = (100, 400))
 
         self.rot_vel = 0
@@ -28,12 +21,11 @@ class Bird(pygame.sprite.Sprite):
     def player_input(self):
         keys = pygame.key.get_pressed() 
         if keys[pygame.K_SPACE] and self.rect.bottom <= 800 and self.gravity > 0:
-            print('pressed')
             rotation = 0
             rotation += 25
             if rotation == 85:
                 rotation = 85
-            self.gravity -= 10
+            self.gravity -= 8 
             
     def animation(self):
         if self.gravity != 0:
@@ -93,18 +85,23 @@ class Obstacles(pygame.sprite.Sprite):
     def destroy(self):
         if self.rect.right < 0:
             self.kill()
-        
+
 
     def update(self):
+        duplicate = pygame.transform.rotate(pipe, 180)
+        self.duplicate_rect = duplicate.get_rect(midbottom = (52 + self.rect.x, (-200) + self.rect.y))
+        screen.blit(duplicate, self.duplicate_rect)
         self.destroy()
+        game_active = self.collision()
         if game_active:
             self.rect.x -= 2
-        
-
-def collision():
-    if pygame.sprite.spritecollide(bird.sprite, obstacle, False):
-        return False
-    return True
+        else:
+            pass
+           
+    def collision(self):
+        if pygame.sprite.spritecollide(bird.sprite, obstacle, False) or self.duplicate_rect.colliderect(bird.sprite.rect):
+            return False
+        return True
 
 # class Ground(pygame.sprite.Sprite):
 #     def __init__(self):
@@ -122,14 +119,20 @@ game_active = False
 clock = pygame.time.Clock()
 
 bird1 = pygame.image.load('flappy bird imgs/bird1.png').convert_alpha()
+bird1 = pygame.transform.scale(bird1, (51, 36))
 bird2 = pygame.image.load('flappy bird imgs/bird2.png').convert_alpha()
+bird2 = pygame.transform.scale(bird2, (51, 36))
 bird3 = pygame.image.load('flappy bird imgs/bird3.png').convert_alpha()
+bird3 = pygame.transform.scale(bird3, (51, 36))
+
 
 bird = pygame.sprite.GroupSingle()
 bird.add(Bird())
 
 pipe = pygame.image.load('flappy bird imgs/pipe.png').convert_alpha()
 pipe = pygame.transform.scale2x(pipe)
+
+double = pygame.transform.rotate(pipe, 180)
 
 sky_surf = pygame.image.load('flappy bird imgs/bg.png').convert()
 sky_surf = pygame.transform.scale(sky_surf, (600,800))
@@ -170,11 +173,9 @@ while True:
     
         obstacle.draw(screen)
         obstacle.update()
-        
+
         
         screen.blit(ground_surf, ground_rect)
-        
-        game_active = collision()
     
     else:
         screen.blit(sky_surf, (0,0))
