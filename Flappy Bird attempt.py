@@ -3,7 +3,8 @@ from sys import exit
 from random import randint
 
 os.system('clear')
-os.chdir('/Users/jaliljusay/Documents/Python_Files/Python Lessons and notes/Pygame Tutorial/Flappy Bird')
+os.chdir('/Users/OatsProgramming/Documents/Python_Files/Python Lessons and notes/Pygame Tutorial/Flappy Bird')
+
 
 class Bird(pygame.sprite.Sprite):
     def __init__(self):
@@ -85,23 +86,24 @@ class Obstacles(pygame.sprite.Sprite):
     def destroy(self):
         if self.rect.right < 0:
             self.kill()
-
+            
 
     def update(self):
         duplicate = pygame.transform.rotate(pipe, 180)
         self.duplicate_rect = duplicate.get_rect(midbottom = (52 + self.rect.x, (-200) + self.rect.y))
         screen.blit(duplicate, self.duplicate_rect)
         self.destroy()
-        game_active = self.collision()
+        game_active = active(self.duplicate_rect)
         if game_active:
             self.rect.x -= 2
         else:
-            pass
+            game_active = False
+            return game_active
            
-    def collision(self):
-        if pygame.sprite.spritecollide(bird.sprite, obstacle, False) or self.duplicate_rect.colliderect(bird.sprite.rect):
-            return False
-        return True
+def active(duplicate_rect):
+    if pygame.sprite.spritecollide(bird.sprite, obstacle, False) or duplicate_rect.colliderect(bird.sprite.rect):
+        return False
+    return True
 
 # class Ground(pygame.sprite.Sprite):
 #     def __init__(self):
@@ -132,15 +134,13 @@ bird.add(Bird())
 pipe = pygame.image.load('flappy bird imgs/pipe.png').convert_alpha()
 pipe = pygame.transform.scale2x(pipe)
 
-double = pygame.transform.rotate(pipe, 180)
-
 sky_surf = pygame.image.load('flappy bird imgs/bg.png').convert()
 sky_surf = pygame.transform.scale(sky_surf, (600,800))
 ground_surf = pygame.image.load('flappy bird imgs/base.png').convert()
 ground_surf = pygame.transform.scale2x(ground_surf)
 ground_rect = ground_surf.get_rect(topleft = (0, 700))
 
-obstacle = pygame.sprite.Group()
+obstacle = pygame.sprite.GroupSingle()
 
 obstacle_timer = pygame.USEREVENT + 1
 pygame.time.set_timer(obstacle_timer, 5000)
@@ -154,15 +154,18 @@ while True:
         if game_active:
             if event.type == obstacle_timer:
                 obstacle.add(Obstacles())
-            
+                
+
             #if event.type == pygame.MOUSEMOTION:
              #   print(event.pos)
         
         else:
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+                bird.sprite.rect.center = (100, 400)
+                bird.sprite.rot_vel = 0
                 obstacle.empty()
                 game_active = True
-
+    
     if game_active:
 
         screen.blit(sky_surf, (0,0))
@@ -173,8 +176,8 @@ while True:
     
         obstacle.draw(screen)
         obstacle.update()
-
-        
+        if obstacle:
+            game_active = active(obstacle.sprite.rect)
         screen.blit(ground_surf, ground_rect)
     
     else:
