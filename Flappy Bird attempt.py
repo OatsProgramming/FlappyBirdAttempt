@@ -1,14 +1,13 @@
-import time
 import pygame, os
 from sys import exit
 from random import randint
 
 os.system('clear')
-os.chdir('/Users/OatsProgramming/Documents/Python_Files/Python Lessons and notes/Pygame Tutorial/Flappy Bird')
+os.chdir('/Users/jaliljusay/Documents/Python_Files/Python Lessons and notes/Pygame Tutorial/Flappy Bird')
 
 
 class Bird(pygame.sprite.Sprite):
-    score = 0
+    score = 0 # Added this here for convenience
     def __init__(self):
         super().__init__()
 
@@ -82,7 +81,7 @@ class Obstacles(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
         self.image = pipe
-        self.rect = self.image.get_rect(midtop = (700, randint(200, 600)))
+        self.rect = self.image.get_rect(midtop = (700, randint(300, 600)))
         
 
     def destroy(self):
@@ -109,12 +108,18 @@ class Obstacles(pygame.sprite.Sprite):
 
     def display_score():
         text_font = pygame.font.Font('Pixeltype copy.ttf', 50)
-        score_surf = text_font.render(f'Score: {actual_score}', False, 'DarkGrey')
-        score_rect = score_surf.get_rect(center = (300, 200))
+        score_surf = text_font.render(f'Score: {actual_score}', False, 'Black')
+        score_rect = score_surf.get_rect(center = (300, 100))
         screen.blit(score_surf, score_rect)
+        
 
     def get_score(self):
-        line = pygame.draw.line(screen, 'gold', self.rect.midtop, self.duplicate_rect.midbottom)
+        # The next four lines are to create a transparent dummy surface for the line
+        dummy_surface = pygame.Surface((600,800))  # the size of your rect
+        dummy_surface.set_alpha(0)                  # alpha level (Set to 0 for clear; set anything > 0 for increasing translucence)
+        dummy_surface.fill((255,255,255))           # this fills the entire surface
+        screen.blit(dummy_surface, (0,0))
+        line = pygame.draw.line(dummy_surface, 'black', self.rect.midtop, self.duplicate_rect.midbottom) # Left the line colored to see if itll appear on screen
         if bird.sprite.rect.colliderect(line):
             return 1
         else:
@@ -162,10 +167,10 @@ ground_surf = pygame.image.load('flappy bird imgs/base.png').convert()
 ground_surf = pygame.transform.scale2x(ground_surf)
 ground_rect = ground_surf.get_rect(topleft = (0, 700))
 
-obstacle = pygame.sprite.Group()
+obstacle = pygame.sprite.Group() # DO NOT CHANGE THIS TO GROUPSINGLE. IT WILL CAUSE BUGS EVERYTIME IT LOOPS
 
 obstacle_timer = pygame.USEREVENT + 1
-pygame.time.set_timer(obstacle_timer, 5000)
+pygame.time.set_timer(obstacle_timer, 5000) # This is changeable. controls the spawn rate of the obstacles
 
 
 while True:
@@ -178,10 +183,6 @@ while True:
             if event.type == obstacle_timer:
                 obstacle.add(Obstacles())
                 
-
-            #if event.type == pygame.MOUSEMOTION:
-             #   print(event.pos)
-        
         elif not game_active:
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
                 bird.sprite.rect.center = (100, 400)
