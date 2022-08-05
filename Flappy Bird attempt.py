@@ -3,7 +3,7 @@ from sys import exit
 from random import randint
 
 os.system('clear')
-os.chdir('/Users/OatsProgramming/Documents/Python_Files/Python Lessons and notes/Pygame Tutorial/Flappy Bird')
+os.chdir('/Users/jaliljusay/Documents/Python_Files/Python Lessons and notes/Pygame Tutorial/Flappy Bird')
 
 
 class Bird(pygame.sprite.Sprite):
@@ -89,6 +89,7 @@ class Obstacles(pygame.sprite.Sprite):
             
 
     def update(self):
+        global game_active
         duplicate = pygame.transform.rotate(pipe, 180)
         self.duplicate_rect = duplicate.get_rect(midbottom = (52 + self.rect.x, (-200) + self.rect.y))
         screen.blit(duplicate, self.duplicate_rect)
@@ -140,7 +141,7 @@ ground_surf = pygame.image.load('flappy bird imgs/base.png').convert()
 ground_surf = pygame.transform.scale2x(ground_surf)
 ground_rect = ground_surf.get_rect(topleft = (0, 700))
 
-obstacle = pygame.sprite.GroupSingle()
+obstacle = pygame.sprite.Group()
 
 obstacle_timer = pygame.USEREVENT + 1
 pygame.time.set_timer(obstacle_timer, 5000)
@@ -159,7 +160,7 @@ while True:
             #if event.type == pygame.MOUSEMOTION:
              #   print(event.pos)
         
-        else:
+        elif not game_active:
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
                 bird.sprite.rect.center = (100, 400)
                 bird.sprite.rot_vel = 0
@@ -176,8 +177,7 @@ while True:
     
         obstacle.draw(screen)
         obstacle.update()
-        if obstacle:
-            game_active = active(obstacle.sprite.rect)
+        
         screen.blit(ground_surf, ground_rect)
     
     else:
