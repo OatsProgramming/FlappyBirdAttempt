@@ -1,12 +1,14 @@
+import time
 import pygame, os
 from sys import exit
 from random import randint
 
 os.system('clear')
-os.chdir('/Users/jaliljusay/Documents/Python_Files/Python Lessons and notes/Pygame Tutorial/Flappy Bird')
+os.chdir('/Users/OatsProgramming/Documents/Python_Files/Python Lessons and notes/Pygame Tutorial/Flappy Bird')
 
 
 class Bird(pygame.sprite.Sprite):
+    score = 0
     def __init__(self):
         super().__init__()
 
@@ -87,12 +89,16 @@ class Obstacles(pygame.sprite.Sprite):
         if self.rect.right < 0:
             self.kill()
             
-
+    
     def update(self):
-        global game_active
+        global game_active, actual_score
         duplicate = pygame.transform.rotate(pipe, 180)
         self.duplicate_rect = duplicate.get_rect(midbottom = (52 + self.rect.x, (-200) + self.rect.y))
         screen.blit(duplicate, self.duplicate_rect)
+        new_score = self.get_score() 
+        Bird.score += new_score # For some reason its giving me the number 25
+        actual_score = Bird.score // 25 # I will divide it by 25 to get the actual score
+        Obstacles.display_score()
         self.destroy()
         game_active = active(self.duplicate_rect)
         if game_active:
@@ -100,7 +106,23 @@ class Obstacles(pygame.sprite.Sprite):
         else:
             game_active = False
             return game_active
-           
+
+    def display_score():
+        text_font = pygame.font.Font('Pixeltype copy.ttf', 50)
+        score_surf = text_font.render(f'Score: {actual_score}', False, 'DarkGrey')
+        score_rect = score_surf.get_rect(center = (300, 200))
+        screen.blit(score_surf, score_rect)
+
+    def get_score(self):
+        line = pygame.draw.line(screen, 'gold', self.rect.midtop, self.duplicate_rect.midbottom)
+        if bird.sprite.rect.colliderect(line):
+            return 1
+        else:
+            return 0
+        
+        
+        
+
 def active(duplicate_rect):
     if pygame.sprite.spritecollide(bird.sprite, obstacle, False) or duplicate_rect.colliderect(bird.sprite.rect):
         return False
@@ -128,7 +150,6 @@ bird2 = pygame.transform.scale(bird2, (51, 36))
 bird3 = pygame.image.load('flappy bird imgs/bird3.png').convert_alpha()
 bird3 = pygame.transform.scale(bird3, (51, 36))
 
-
 bird = pygame.sprite.GroupSingle()
 bird.add(Bird())
 
@@ -145,6 +166,7 @@ obstacle = pygame.sprite.Group()
 
 obstacle_timer = pygame.USEREVENT + 1
 pygame.time.set_timer(obstacle_timer, 5000)
+
 
 while True:
     for event in pygame.event.get():
@@ -174,7 +196,7 @@ while True:
 
         bird.draw(screen)
         bird.update()
-    
+
         obstacle.draw(screen)
         obstacle.update()
         
