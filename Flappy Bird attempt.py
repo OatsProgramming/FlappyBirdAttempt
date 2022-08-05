@@ -14,7 +14,6 @@ class Bird(pygame.sprite.Sprite):
         self.frames = [bird1, bird2, bird3]
         self.frames_index = 0
         self.image = self.frames[self.frames_index]
-        # self.image = pygame.transform.scale2x(self.image)
         self.rect = self.image.get_rect(center = (100, 400))
 
         self.rot_vel = 0
@@ -69,9 +68,8 @@ class Bird(pygame.sprite.Sprite):
                 self.gravity = 20
             if self.rect.bottom >= 700:
                 #self.gravity = 0
-                self.rect.bottom = 700
+                self.rect.bottom = 700                
                 
-
     def update(self):
         self.player_input()
         self.apply_gravity()
@@ -125,57 +123,46 @@ class Obstacles(pygame.sprite.Sprite):
         else:
             return 0
         
-        
-        
-
 def active(duplicate_rect):
     if pygame.sprite.spritecollide(bird.sprite, obstacle, False) or duplicate_rect.colliderect(bird.sprite.rect):
         return False
     return True
 
-# class Ground(pygame.sprite.Sprite):
-#     def __init__(self):
-#         super().__init__()
-#         self.image = ground_surf
-#         self.rect = self.image.get_rect(topleft = (0, 700))
-#     
-#     def animation(self):
-#         jh = 
-    
+# Initiation
 pygame.init()
-
+# The fundamentals
 screen = pygame.display.set_mode((600, 800))
 game_active = False
 clock = pygame.time.Clock()
-
+# Bird stuff
 bird1 = pygame.image.load('flappy bird imgs/bird1.png').convert_alpha()
 bird1 = pygame.transform.scale(bird1, (51, 36))
 bird2 = pygame.image.load('flappy bird imgs/bird2.png').convert_alpha()
 bird2 = pygame.transform.scale(bird2, (51, 36))
 bird3 = pygame.image.load('flappy bird imgs/bird3.png').convert_alpha()
 bird3 = pygame.transform.scale(bird3, (51, 36))
-
 bird = pygame.sprite.GroupSingle()
 bird.add(Bird())
-
+# Obstacle stuff
 pipe = pygame.image.load('flappy bird imgs/pipe.png').convert_alpha()
 pipe = pygame.transform.scale2x(pipe)
-
+obstacle = pygame.sprite.Group() # DO NOT CHANGE THIS TO GROUPSINGLE. IT WILL CAUSE BUGS EVERYTIME IT LOOPS
+obstacle_timer = pygame.USEREVENT + 1
+pygame.time.set_timer(obstacle_timer, 5000) # This is changeable. controls the spawn rate of the obstacles
+# Background (Maybe incorporate parrallax feature?)
 sky_surf = pygame.image.load('flappy bird imgs/bg.png').convert()
 sky_surf = pygame.transform.scale(sky_surf, (600,800))
+# Ground stuff
 ground_surf = pygame.image.load('flappy bird imgs/base.png').convert()
 ground_surf = pygame.transform.scale2x(ground_surf)
 ground_rect = ground_surf.get_rect(topleft = (0, 700))
-
-obstacle = pygame.sprite.Group() # DO NOT CHANGE THIS TO GROUPSINGLE. IT WILL CAUSE BUGS EVERYTIME IT LOOPS
-
-obstacle_timer = pygame.USEREVENT + 1
-pygame.time.set_timer(obstacle_timer, 5000) # This is changeable. controls the spawn rate of the obstacles
-
+duplicate_ground = ground_surf
+duplicate_groundrect = duplicate_ground.get_rect(topleft = (625,700)) # I found that x_pos = 625 pixels is the best position to avoid the "stitches" look for the ground animation
 
 while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
+            # To close the game and program
             pygame.quit()
             exit()
     
@@ -185,6 +172,7 @@ while True:
                 
         elif not game_active:
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+                # Reset everything. Trying to figure out to reset score
                 bird.sprite.rect.center = (100, 400)
                 bird.sprite.rot_vel = 0
                 obstacle.empty()
@@ -193,15 +181,22 @@ while True:
     if game_active:
 
         screen.blit(sky_surf, (0,0))
-        
-
+        # Bird 
         bird.draw(screen)
         bird.update()
-
+        # Pipes
         obstacle.draw(screen)
         obstacle.update()
-        
+        # Ground animation
         screen.blit(ground_surf, ground_rect)
+        ground_rect.x -= 2
+        screen.blit(duplicate_ground, duplicate_groundrect)
+        duplicate_groundrect.x -= 2
+        # Objective: Pretty much make a treadmill of animation for the ground
+        if ground_rect.right < 0:
+            ground_rect.left = duplicate_groundrect.right
+        if duplicate_groundrect.right < 0:
+            duplicate_groundrect.left = ground_rect.right
     
     else:
         screen.blit(sky_surf, (0,0))
