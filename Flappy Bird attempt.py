@@ -1,9 +1,10 @@
+from glob import glob
 import pygame, os
 from sys import exit
 from random import randint
 
 os.system('clear')
-os.chdir('/Users/jaliljusay/Documents/Python_Files/Python Lessons and notes/Pygame Tutorial/Flappy Bird')
+os.chdir('/Users/OatsProgramming/Documents/Python_Files/Python Lessons and notes/Pygame Tutorial/Flappy Bird')
 
 
 class Bird(pygame.sprite.Sprite):
@@ -81,6 +82,7 @@ class Obstacles(pygame.sprite.Sprite):
         self.image = pipe
         self.rect = self.image.get_rect(midtop = (700, randint(300, 600)))
         
+        self.actual_score = 0
 
     def destroy(self):
         if self.rect.right < 0:
@@ -88,27 +90,22 @@ class Obstacles(pygame.sprite.Sprite):
             
     
     def update(self):
-        global game_active, actual_score
+        global game_active
         duplicate = pygame.transform.rotate(pipe, 180)
         self.duplicate_rect = duplicate.get_rect(midbottom = (52 + self.rect.x, (-200) + self.rect.y))
         screen.blit(duplicate, self.duplicate_rect)
-        new_score = self.get_score() 
-        Bird.score += new_score # For some reason its giving me the number 25
-        actual_score = Bird.score // 25 # I will divide it by 25 to get the actual score
-        Obstacles.display_score()
         self.destroy()
         game_active = active(self.duplicate_rect)
         if game_active:
             self.rect.x -= 2
+ 
+            new_score = self.get_score() 
+            Bird.score += new_score # For some reason its giving me the number 25
+            self.actual_score = Bird.score // 25 # I will divide it by 25 to get the actual score
+            display_score(self.actual_score)
         else:
             game_active = False
-            return game_active
-
-    def display_score():
-        text_font = pygame.font.Font('Pixeltype copy.ttf', 50)
-        score_surf = text_font.render(f'Score: {actual_score}', False, 'Black')
-        score_rect = score_surf.get_rect(center = (300, 100))
-        screen.blit(score_surf, score_rect)
+    
         
 
     def get_score(self):
@@ -127,13 +124,16 @@ def active(duplicate_rect):
     if pygame.sprite.spritecollide(bird.sprite, obstacle, False) or duplicate_rect.colliderect(bird.sprite.rect):
         return False
     return True
+    
 
 # Initiation
 pygame.init()
+
 # The fundamentals
 screen = pygame.display.set_mode((600, 800))
 game_active = False
 clock = pygame.time.Clock()
+
 # Bird stuff
 bird1 = pygame.image.load('flappy bird imgs/bird1.png').convert_alpha()
 bird1 = pygame.transform.scale(bird1, (51, 36))
@@ -143,21 +143,37 @@ bird3 = pygame.image.load('flappy bird imgs/bird3.png').convert_alpha()
 bird3 = pygame.transform.scale(bird3, (51, 36))
 bird = pygame.sprite.GroupSingle()
 bird.add(Bird())
+
 # Obstacle stuff
 pipe = pygame.image.load('flappy bird imgs/pipe.png').convert_alpha()
 pipe = pygame.transform.scale2x(pipe)
 obstacle = pygame.sprite.Group() # DO NOT CHANGE THIS TO GROUPSINGLE. IT WILL CAUSE BUGS EVERYTIME IT LOOPS
 obstacle_timer = pygame.USEREVENT + 1
 pygame.time.set_timer(obstacle_timer, 5000) # This is changeable. controls the spawn rate of the obstacles
+
 # Background (Maybe incorporate parrallax feature?)
 sky_surf = pygame.image.load('flappy bird imgs/bg.png').convert()
 sky_surf = pygame.transform.scale(sky_surf, (600,800))
+
 # Ground stuff
 ground_surf = pygame.image.load('flappy bird imgs/base.png').convert()
 ground_surf = pygame.transform.scale2x(ground_surf)
 ground_rect = ground_surf.get_rect(topleft = (0, 700))
 duplicate_ground = ground_surf
 duplicate_groundrect = duplicate_ground.get_rect(topleft = (625,700)) # I found that x_pos = 625 pixels is the best position to avoid the "stitches" look for the ground animation
+
+# Intro stuff
+text_font = pygame.font.Font('flappy-font.ttf', 50)
+title_surf = text_font.render('Flappy Bird', False, 'white')
+title_rect = title_surf.get_rect(topleft = (250, 100))
+attempt_surf = text_font.render('Attempted by Jay', False, '#C79626')
+attempt_surf = pygame.transform.scale(attempt_surf, (150, 25))
+attempt_rect = attempt_surf.get_rect(topleft = (375, 175))
+
+def display_score(actual_score):
+    score_surf = text_font.render(f'Score: {actual_score}', False, 'Black')
+    score_rect = score_surf.get_rect(center = (300, 100))
+    screen.blit(score_surf, score_rect)
 
 while True:
     for event in pygame.event.get():
@@ -170,9 +186,9 @@ while True:
             if event.type == obstacle_timer:
                 obstacle.add(Obstacles())
                 
-        elif not game_active:
+        else:
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
-                # Reset everything. Trying to figure out to reset score
+                # Reset everything. Trying to figure out to reset score 
                 bird.sprite.rect.center = (100, 400)
                 bird.sprite.rot_vel = 0
                 obstacle.empty()
@@ -200,6 +216,8 @@ while True:
     
     else:
         screen.blit(sky_surf, (0,0))
+        screen.blit(title_surf, title_rect)
+        screen.blit(attempt_surf, attempt_rect)
         bird.draw(screen)
         bird.update()
         obstacle.draw(screen)
